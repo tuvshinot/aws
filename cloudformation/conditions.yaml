@@ -1,0 +1,29 @@
+MyAndCondition: !And
+  - !Equals ["sg-mysggroup", !Ref ASecurityGroup]
+  - !Condition SomeOtherCondition
+
+UseProdCondition:
+  !Equals [!Ref EnvironmentType, prod]
+
+# !If [condition_name, value_if_true, value_if_false]
+SecurityGroups:
+- !If [CreateNewSecurityGroup, !Ref NewSecurityGroup, !Ref ExistingSecurityGroup]
+
+MyDB:
+Type: "AWS::RDS::DBInstance"
+Properties: 
+  AllocatedStorage: 5
+  DBInstanceClass: db.t2.small
+  Engine: MySQL
+  EngineVersion: 5.5
+  MasterUsername: !Ref DBUser
+  MasterUserPassword: !Ref DBPassword
+  DBParameterGroupName: !Ref MyRDSParamGroup
+  DBSnapshotIdentifier:
+    !If [UseDBSnapshot, !Ref DBSnapshotName, !Ref "AWS::NoValue"]
+
+MyNotCondition:
+!Not [!Equals [!Ref EnvironmentType, prod]]
+
+MyOrCondition:
+  !Or [!Equals [sg-mysggroup, !Ref ASecurityGroup], Condition: SomeOtherCondition]

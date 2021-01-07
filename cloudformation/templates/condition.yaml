@@ -1,0 +1,41 @@
+# The following sample template includes an EnvType input parameter, 
+# where you can specify prod to create a stack for production or test to 
+# create a stack for testing. For a production environment, 
+# AWS CloudFormation creates an Amazon EC2 instance and attaches a volume
+# to the instance. For a test environment, AWS CloudFormation creates only the Amazon EC2 instance.
+
+
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  EnvType:
+    Description: Environment type.
+    Default: test
+    Type: String
+    AllowedValues:
+      - prod
+      - test
+    ConstraintDescription: must specify prod or test.
+Conditions:
+  CreateProdResources: !Equals 
+    - !Ref EnvType
+    - prod
+Resources:
+  EC2Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-0ff8a91507f77f867
+  MountPoint:
+    Type: 'AWS::EC2::VolumeAttachment'
+    Condition: CreateProdResources
+    Properties:
+      InstanceId: !Ref EC2Instance
+      VolumeId: !Ref NewVolume
+      Device: /dev/sdh
+  NewVolume:
+    Type: 'AWS::EC2::Volume'
+    Condition: CreateProdResources
+    Properties:
+      Size: 100
+      AvailabilityZone: !GetAtt 
+        - EC2Instance
+        - AvailabilityZone
